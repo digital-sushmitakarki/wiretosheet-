@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WireToSheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* base */
+    --bg: #FBFCFC;
+    --panel: #FFFFFF;
+    --panel-2: #F5F7F8;
+    --line: #E2E7EA;
+    --line-soft: #EDF1F3;
+    --ink: #15181B;
+    --ink-dim: #616970;
+
+    /* primary — olive green */
+    --primary: #66782E;
+    --primary-bright: #7E9439;
+    --primary-deep: #4B5A21;
+    --primary-dim: #DCE5C4;
+    --primary-tint: #F1F5E6;
+
+    /* secondary — technical blue */
+    --accent: #2F6FE4;
+    --accent-deep: #1E56B8;
+    --accent-dim: #E5EEFC;
+    --card-bg: #F4F8FE;
+    --card-border: #D9E6F8;
+
+    --danger: #B23F2E;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 2px rgba(21,24,27,0.05), 0 1px 1px rgba(21,24,27,0.03);
+    --shadow-md: 0 6px 18px rgba(21,24,27,0.07), 0 2px 5px rgba(21,24,27,0.04);
+    --shadow-lift: 0 14px 32px rgba(21,24,27,0.10), 0 3px 8px rgba(21,24,27,0.05);
+  }
+  *{box-sizing:border-box;}
+  ::selection{background:var(--primary-dim);}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    color:var(--ink);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(ellipse 820px 420px at 12% -12%, rgba(102,120,46,0.055), transparent),
+      radial-gradient(ellipse 700px 460px at 98% -6%, rgba(47,111,228,0.06), transparent),
+      radial-gradient(rgba(21,24,27,0.045) 1px, transparent 1px);
+    background-size: auto, auto, 22px 22px;
+    background-repeat: no-repeat, no-repeat, repeat;
+    background-attachment: fixed, fixed, scroll;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:34px 20px 64px;position:relative;}
+
+  /* ---------- header ---------- */
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:4px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:13px;}
+  .brand-mark{
+    width:42px;height:42px;border-radius:11px;flex:0 0 auto;
+    background:linear-gradient(152deg, var(--primary-bright) 0%, var(--primary-deep) 100%);
+    display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);
+  }
+  .eyebrow{font-size:13.5px;font-weight:500;color:var(--ink-dim);letter-spacing:-.005em;}
+  .eyebrow .ey-accent{color:var(--primary);font-weight:600;}
+  h1{font-weight:700;font-size:29px;margin:1px 0 0;letter-spacing:-.028em;color:var(--ink);}
+  .sub{color:var(--ink-dim);font-size:15px;line-height:1.6;max-width:560px;margin:0 auto;text-align:center;}
+
+  .lang-toggle{
+    display:flex;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden;
+    flex:0 0 auto;height:32px;background:var(--panel);box-shadow:var(--shadow-sm);
+  }
+  .lang-toggle button{
+    border:none;background:transparent;color:var(--ink-dim);padding:0 13px;
+    font-family:'Inter',sans-serif;font-weight:500;font-size:12.5px;cursor:pointer;transition:background .15s,color .15s;
+  }
+  .lang-toggle button:hover{color:var(--ink);}
+  .lang-toggle button.active{background:var(--primary);color:#fff;}
+
+  .back-link{
+    background:none;border:none;color:var(--ink-dim);font-family:'Inter',sans-serif;font-weight:500;
+    font-size:14px;cursor:pointer;padding:0;margin:2px 0 20px;letter-spacing:-.008em;
+  }
+  .back-link:hover{color:var(--primary);}
+
+  /* ---------- hero ---------- */
+  .hero{margin:54px 0 34px;text-align:center;}
+  .hero-headline{
+    font-weight:700;font-size:clamp(27px,4vw,42px);color:var(--ink);
+    margin:0 0 12px;letter-spacing:-.035em;line-height:1.1;
+  }
+  .hero-headline .hl-accent{color:var(--primary);}
+  .hero-graphic{flex:0 0 auto;margin:-6px 36px 0 auto;pointer-events:none;align-self:center;}
+  @media(max-width:980px){.hero-graphic{display:none;}.hero{margin:30px 0 28px;}}
+
+  .section-heading{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 22px;}
+  .section-heading .rule{
+    display:block;width:44px;height:0;border-top:1.5px solid var(--primary-dim);flex:0 0 auto;
+  }
+  .mode-select-title{
+    font-weight:600;font-size:17px;color:var(--ink);margin:0;letter-spacing:-.015em;
+  }
+
+  /* ---------- mode cards ---------- */
+  .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  @media(max-width:760px){.mode-grid{grid-template-columns:1fr;}}
+  .mode-card{
+    background:#F5F9FE;
+    border:1px solid #E1EBF8;border-radius:16px;
+    padding:30px 30px 28px;cursor:pointer;text-align:left;position:relative;
+    transition:box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+  }
+  .mode-card:hover{border-color:#C6DBF6;box-shadow:0 14px 30px rgba(21,24,27,0.09);transform:translateY(-3px);}
+  .mc-head{display:flex;align-items:flex-start;gap:20px;}
+  .mode-card .mc-icon{
+    width:56px;height:56px;border-radius:50%;flex:0 0 auto;margin:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--accent);color:#fff;
+    box-shadow:0 5px 14px rgba(47,111,228,0.28);
+  }
+  .mc-body{flex:1;min-width:0;}
+  .mode-card h3{margin:6px 0 10px;font-size:20px;font-weight:650;color:var(--ink);letter-spacing:-.022em;}
+  .mode-card p{margin:0;font-size:14px;color:var(--ink-dim);line-height:1.62;}
+  .mc-divider{border-top:1px dashed #D7E2F1;margin:24px 0 20px;}
+  .mc-foot{display:flex;justify-content:center;}
+  .mode-card .mc-cta{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--primary);color:#fff;font-size:14px;font-weight:600;
+    padding:12px 26px;border-radius:10px;
+    box-shadow:var(--shadow-sm);
+    transition:background .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .mode-card:hover .mc-cta,
+  .mode-card .mc-cta:hover{
+    background:var(--primary-bright);
+    box-shadow:0 6px 16px rgba(102,120,46,0.30);
+    transform:translateY(-1px);
+  }
+
+  /* ---------- feature strip ---------- */
+  .feature-strip{
+    display:flex;gap:0;flex-wrap:wrap;margin-top:22px;
+    border:1px solid var(--line);border-radius:16px;
+    background:var(--panel);box-shadow:var(--shadow-sm);
+  }
+  .feature-item{
+    flex:1;min-width:220px;padding:20px 24px;display:flex;align-items:center;gap:16px;position:relative;
+  }
+  .feature-item + .feature-item::before{
+    content:"";position:absolute;left:0;top:22%;height:56%;width:1px;background:var(--line);
+  }
+  .feature-item .fi-icon{
+    width:44px;height:44px;border-radius:13px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--accent-dim);color:var(--accent);
+  }
+  .feature-item span{font-size:14px;color:var(--ink);font-weight:500;line-height:1.5;}
+  .feature-item span b{color:var(--accent);font-weight:600;}
+
+  /* ---------- data journey ---------- */
+  .flow-section{
+    margin-top:22px;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:26px 30px 30px;box-shadow:var(--shadow-sm);
+  }
+  .flow-section-title{
+    font-weight:650;font-size:20px;color:var(--ink);
+    letter-spacing:-.022em;margin-bottom:24px;
+    display:flex;align-items:center;justify-content:center;gap:12px;
+  }
+  .flow-section-title .spark{color:var(--primary);display:inline-flex;align-items:center;}
+  .flow-diagram{
+    display:flex;align-items:center;gap:0;background:transparent;border:none;
+    border-radius:0;padding:0;box-shadow:none;
+  }
+  .flow-node{
+    flex:0 1 auto;display:flex;flex-direction:row;align-items:center;gap:16px;
+  }
+  .flow-node .fn-icon{
+    width:66px;height:66px;border-radius:18px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    background:#EDF3FD;color:var(--accent);border:none;
+  }
+  .fn-text{min-width:0;}
+  .flow-node span{
+    display:block;font-size:17px;font-weight:650;color:var(--primary);
+    text-align:left;letter-spacing:-.018em;
+  }
+  .flow-node small{
+    display:block;font-size:13.5px;color:var(--ink-dim);text-align:left;
+    line-height:1.5;max-width:180px;margin-top:3px;
+  }
+  .flow-connector{
+    flex:1 1 60px;min-width:56px;height:32px;display:flex;align-items:center;
+    background:none;position:static;
+  }
+  .flow-connector::before{
+    content:"";flex:1 1 auto;height:0;border-top:2px dashed #CBD3D9;margin-right:8px;
+  }
+  .flow-connector::after{
+    content:"→";flex:0 0 auto;width:32px;height:32px;border-radius:50%;
+    background:var(--primary);color:#fff;font-size:15px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 9px rgba(102,120,46,0.28);
+  }
+  @media(max-width:900px){
+    .flow-diagram{flex-direction:column;align-items:flex-start;gap:20px;}
+    .flow-node{width:100%;}
+    .flow-connector{display:none;}
+  }
+
+  /* ---------- step tracker ---------- */
+  .steps-tracker{
+    display:flex;gap:0;margin:12px 0 26px;
+    border:1px solid #E6EAEE;border-radius:16px;overflow:hidden;
+    background:var(--panel);box-shadow:0 1px 2px rgba(21,24,27,0.04);
+  }
+  .step-pill{
+    flex:1;padding:20px 22px;font-weight:500;font-size:15px;
+    color:#8A9199;border-right:1px solid var(--line-soft);position:relative;
+    display:flex;align-items:center;gap:13px;letter-spacing:-.012em;
+    transition:background .18s, color .18s;
+  }
+  .step-pill:last-child{border-right:none;}
+  .step-pill .num{
+    width:30px;height:30px;border-radius:50%;background:#E9F0FA;
+    display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:600;
+    color:var(--accent);flex:0 0 auto;transition:background .18s, color .18s;
+  }
+  .step-pill.active{color:var(--ink);font-weight:650;background:#F2F7FE;}
+  .step-pill.active::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--accent);
+  }
+  .step-pill.active .num{background:var(--accent);color:#fff;}
+  .step-pill.done{color:var(--ink);}
+  .step-pill.done .num{background:var(--accent);color:#fff;}
+  /* the builder flow is anchored on olive, the wiring flow on blue */
+  #screenForm .step-pill.active{background:var(--primary-tint);}
+  #screenForm .step-pill.active::after{background:var(--primary);}
+  #screenForm .step-pill.active .num{background:var(--primary);color:#fff;}
+  #screenForm .step-pill.done .num{background:var(--primary);color:#fff;}
+
+  .screen{display:none;}
+  .screen.visible{display:block;}
+  .step-panel{display:none;}
+  .step-panel.visible{display:block;}
+
+  .grid2{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr;}}
+
+  /* ---------- panels ---------- */
+  .panel{background:var(--panel);border:1px solid #E6EAEE;border-radius:14px;padding:26px 28px;margin-bottom:20px;box-shadow:0 1px 2px rgba(21,24,27,0.04);}
+  .panel h2{
+    font-weight:650;font-size:16px;color:var(--ink);margin:0 0 18px;letter-spacing:-.018em;
+    display:flex;justify-content:space-between;align-items:center;
+    padding-bottom:14px;border-bottom:1px solid var(--line-soft);
+  }
+  .panel h2 span.tag{
+    font-size:11.5px;font-weight:600;color:var(--primary-deep);background:var(--primary-tint);
+    padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;
+  }
+  .panel h2:not(:first-child){margin-top:30px;}
+  /* tinted panel with a circular icon heading — the paste-your-code step */
+  .panel-tinted{background:#F6F9FE;border-color:#E1EBF8;}
+  .panel-head{display:flex;align-items:center;gap:15px;margin-bottom:20px;}
+  .panel-head .ph-badge{
+    width:44px;height:44px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--accent);color:#fff;box-shadow:0 5px 14px rgba(47,111,228,0.28);
+  }
+  .panel-head h2{margin:0;padding:0;border-bottom:none;font-size:17.5px;}
+  .panel h2 svg{width:16px;height:16px;flex:0 0 auto;color:var(--accent);margin-right:8px;}
+  .h2-label{display:flex;align-items:center;}
+
+  /* ---------- form controls ---------- */
+  .field-row{display:flex;gap:9px;margin-bottom:10px;align-items:center;}
+  .field-row input[type=text]{
+    flex:1;background:#fff;border:1px solid #DCE2E8;color:var(--ink);
+    padding:11px 13px;border-radius:9px;font-size:14px;font-family:'Inter',sans-serif;
+  }
+  .field-row select{
+    background:#fff;border:1px solid #DCE2E8;color:var(--ink);
+    padding:11px 8px;border-radius:9px;font-size:13.5px;width:104px;font-family:'Inter',sans-serif;
+  }
+  .field-row input[type=text]:focus, .field-row select:focus{
+    outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-dim);
+  }
+  .field-row button.rm{background:none;border:none;color:var(--ink-dim);cursor:pointer;font-size:17px;padding:4px 6px;line-height:1;}
+  .field-row button.rm:hover{color:var(--danger);}
+  .req-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--ink-dim);cursor:pointer;user-select:none;white-space:nowrap;}
+  .req-toggle input[type=checkbox]{width:16px;height:16px;}
+  input[type=checkbox]{accent-color:var(--accent);}
+
+  .add-field{
+    width:100%;margin-top:8px;padding:13px;background:#F8FBFF;border:1.5px dashed #BDD5F4;
+    color:var(--accent);border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;
+    transition:border-color .15s, color .15s, background .15s;
+  }
+  .add-field:hover{border-color:var(--accent);color:var(--accent-deep);background:var(--accent-dim);}
+
+  label.small{display:block;font-size:12.5px;font-weight:500;color:var(--ink-dim);margin:16px 0 7px;}
+  input.text-input, textarea.text-input{
+    width:100%;background:#fff;border:1px solid #DCE2E8;color:var(--ink);
+    padding:11px 13px;border-radius:9px;font-size:14px;font-family:'Inter',sans-serif;
+  }
+  input.text-input:focus, textarea.text-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-dim);}
+  textarea.text-input{resize:vertical;min-height:56px;}
+  textarea.code-input{
+    width:100%;min-height:250px;background:#fff;border:1px solid #D8E3F2;color:var(--ink);
+    padding:16px;border-radius:11px;font-size:13px;font-family:'JetBrains Mono',monospace;resize:vertical;line-height:1.65;
+  }
+  textarea.code-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-dim);}
+
+  .style-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;font-size:13.5px;color:var(--ink-dim);}
+  .style-row label{flex:1;}
+  .style-row input[type=color]{
+    width:34px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--panel-2);cursor:pointer;flex:0 0 auto;
+  }
+  .style-row input.hex-input{
+    width:96px;flex:0 0 auto;background:#fff;border:1px solid #DCE2E8;color:var(--ink);
+    padding:7px 9px;border-radius:8px;font-size:12.5px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;
+  }
+  .style-row input.hex-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
+  .style-row input[type=range]{width:120px;height:5px;accent-color:var(--accent);}
+  .style-row select{
+    background:#fff;border:1px solid #DCE2E8;color:var(--ink);
+    padding:9px 11px;border-radius:9px;font-size:13.5px;max-width:190px;font-family:'Inter',sans-serif;
+  }
+  .style-row select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-dim);}
+  .style-val{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;color:var(--accent);min-width:44px;text-align:right;}
+  .toggle-row{display:flex;align-items:center;gap:9px;margin-bottom:9px;font-size:13.5px;color:var(--ink-dim);}
+  .toggle-row input[type=checkbox]{width:16px;height:16px;}
+
+  .bg-upload{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+  .bg-upload input[type=file]{display:none;}
+  .bg-pick{
+    flex:1;text-align:center;padding:11px;background:#F8FBFF;border:1.5px dashed #BDD5F4;
+    color:var(--accent);border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:600;
+    transition:border-color .15s, background .15s;
+  }
+  .bg-pick:hover{border-color:var(--accent);background:var(--accent-dim);}
+  .bg-remove{
+    flex:0 0 auto;background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    padding:11px 14px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;
+  }
+  .bg-remove:hover{border-color:var(--danger);color:var(--danger);}
+  .bg-note{font-size:12px;color:var(--ink-dim);margin-bottom:12px;line-height:1.5;}
+
+  /* ---------- buttons ---------- */
+  .generate-btn{
+    padding:14px 26px;
+    background:var(--primary);
+    color:#fff;border:none;border-radius:10px;
+    font-weight:600;font-size:14.5px;cursor:pointer;font-family:'Inter',sans-serif;
+    box-shadow:var(--shadow-sm);transition:background .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .generate-btn:hover{background:var(--primary-bright);box-shadow:0 5px 14px rgba(102,120,46,0.26);transform:translateY(-1px);}
+  .generate-btn:not(.secondary)::after{
+    content:"";display:inline-block;width:6px;height:6px;margin-left:9px;margin-bottom:1px;
+    border-right:2px solid rgba(255,255,255,0.85);border-bottom:2px solid rgba(255,255,255,0.85);
+    transform:rotate(-45deg);vertical-align:middle;
+  }
+  .generate-btn.secondary{background:var(--panel);color:var(--ink-dim);border:1px solid var(--line);box-shadow:none;}
+  .generate-btn.secondary:hover{background:var(--panel);border-color:var(--card-border);color:var(--accent-deep);box-shadow:var(--shadow-sm);transform:none;}
+  .generate-btn:disabled{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none;background:var(--primary);}
+  .step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px;}
+
+  /* ---------- previews ---------- */
+  .preview-shell{position:sticky;top:20px;}
+  .preview-canvas{
+    background:#EFF5FD;border:none;border-radius:12px;
+    padding:30px 22px;min-height:300px;display:flex;align-items:flex-start;justify-content:center;overflow-x:auto;
+  }
+  .preview-form{width:100%;}
+  .preview-form .pf-title{margin:0 0 6px;}
+  .preview-form .pf-subtitle{margin:0 0 16px;opacity:.75;line-height:1.55;}
+  .preview-form .pf-field{margin-bottom:12px;}
+  .preview-form .pf-field label{display:block;margin-bottom:4px;opacity:.8;}
+  .preview-form input, .preview-form textarea, .preview-form select{width:100%;padding:9px;font-family:inherit;}
+  .preview-form button{border:none;padding:10px 18px;font-weight:600;cursor:pointer;}
+
+  .popup-preview-wrap{
+    background:#EFF5FD;border:none;border-radius:12px;
+    padding:30px 18px;display:flex;align-items:center;justify-content:center;min-height:220px;
+  }
+  .popup-card{padding:26px 24px;text-align:center;max-width:320px;box-shadow:var(--shadow-md);}
+  .popup-card .pc-heading{margin:0 0 8px;}
+  .popup-card .pc-sub{margin:0 0 18px;opacity:.85;line-height:1.55;font-size:13.5px;}
+  .popup-card button{border:none;padding:9px 20px;font-weight:600;cursor:pointer;}
+
+  /* ---------- code ---------- */
+  .code-box{
+    background:#F7F9FB;border:1px solid #E4E9EE;border-left:3px solid var(--accent);
+    border-radius:12px;padding:18px;position:relative;
+  }
+  pre{
+    margin:0;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.68;color:#22262A;
+    white-space:pre-wrap;word-break:break-word;max-height:360px;overflow-y:auto;
+  }
+  .copy-btn{
+    position:absolute;top:12px;right:12px;background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    padding:6px 11px;font-size:11.5px;font-weight:500;border-radius:var(--radius-sm);cursor:pointer;font-family:'JetBrains Mono',monospace;
+    transition:color .15s, border-color .15s, background .15s;
+  }
+  .copy-btn:hover{color:var(--accent-deep);border-color:var(--card-border);background:var(--card-bg);}
+  .copy-btn.copied{color:var(--primary-deep);border-color:var(--primary-dim);background:var(--primary-tint);}
+
+  .steps-mini{margin-top:16px;font-size:13.5px;color:var(--ink-dim);line-height:1.75;}
+  .steps-mini b{color:var(--ink);}
+
+  .deploy-box{margin-top:20px;padding:18px 20px;background:#F6F9FE;border:1px solid #E1EBF8;border-radius:12px;}
+  .deploy-box label.small{margin-top:0;}
+  .deploy-row{display:flex;gap:8px;}
+  .deploy-row input{
+    flex:1;background:var(--panel);border:1px solid var(--card-border);color:var(--ink);
+    padding:11px 13px;border-radius:9px;font-size:13px;font-family:'JetBrains Mono',monospace;
+  }
+  .deploy-row input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
+  .deploy-row button{
+    background:var(--accent);border:none;color:#fff;padding:11px 20px;border-radius:9px;
+    font-weight:600;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;transition:background .15s, box-shadow .15s;
+  }
+  .deploy-row button:hover{background:var(--accent-deep);box-shadow:0 4px 12px rgba(47,111,228,0.22);}
+  .status{font-size:12px;margin-top:9px;color:var(--ink-dim);}
+  .status.ok{color:var(--primary-deep);font-weight:500;}
+  .status.err{color:var(--danger);font-weight:500;}
+
+  .detected-list{list-style:none;margin:0;padding:0;}
+  .detected-list li{
+    display:flex;justify-content:space-between;gap:12px;padding:12px 15px;border:1px solid var(--card-border);
+    border-radius:10px;margin-bottom:8px;font-size:14px;background:var(--card-bg);
+  }
+  .detected-list .dl-key{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--accent-deep);}
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+    .mode-card:hover, .generate-btn:hover, .mode-card:hover .mc-cta{transform:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="5" cy="6" r="2.4" stroke="#fff" stroke-width="1.6"/>
+          <circle cx="19" cy="6" r="2.4" stroke="#fff" stroke-width="1.6"/>
+          <circle cx="12" cy="18" r="2.4" stroke="#fff" stroke-width="1.6"/>
+          <path d="M7.2 7 L12 15.8 M16.8 7 L12 15.8 M7.4 6 H16.6" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="eyebrow">techydr.com / <span class="ey-accent">dev tools</span></div>
+        <h1>WireToSheet</h1>
+      </div>
+    </div>
+    <svg class="hero-graphic" width="236" height="169" viewBox="0 0 300 215" fill="none" aria-hidden="true">
+      <!-- sparkles -->
+      <path d="M20 52l2.2 5.3 5.3 2.2-5.3 2.2L20 67l-2.2-5.3-5.3-2.2 5.3-2.2L20 52z" fill="#8FA455"/>
+      <path d="M44 26l1.7 4.1 4.1 1.7-4.1 1.7L44 39.3l-1.7-4.1-4.1-1.7 4.1-1.7L44 26z" fill="#A8BA78"/>
+      <!-- dashed connection path -->
+      <path d="M58 32C82 14 108 14 124 28" stroke="#8FA455" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 7" fill="none"/>
+      <path d="M40 74C26 116 44 158 96 168c40 8 76 2 104-12" stroke="#8FA455" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 7" fill="none"/>
+      <path d="M193 149l8 7-9 5" stroke="#66782E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <!-- document -->
+      <rect x="118" y="14" width="106" height="128" rx="13" fill="#F2F4F6" stroke="#E4E8EB" stroke-width="1.4"/>
+      <rect x="137" y="40" width="64" height="8" rx="4" fill="#DCE1E6"/>
+      <rect x="137" y="58" width="70" height="8" rx="4" fill="#DCE1E6"/>
+      <rect x="137" y="76" width="52" height="8" rx="4" fill="#DCE1E6"/>
+      <rect x="137" y="94" width="66" height="8" rx="4" fill="#DCE1E6"/>
+      <rect x="137" y="112" width="38" height="8" rx="4" fill="#DCE1E6"/>
+      <!-- confirmation badge -->
+      <circle cx="214" cy="130" r="17" fill="#66782E"/>
+      <path d="M206.5 130.5l5 5 10-10" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <!-- google sheet -->
+      <circle cx="250" cy="176" r="33" fill="#FFFFFF" stroke="#EAEDF0" stroke-width="1.4"/>
+      <path d="M236 160h19l9 9v27a4 4 0 0 1-4 4h-24a4 4 0 0 1-4-4v-32a4 4 0 0 1 4-4z" fill="#0F9D58"/>
+      <path d="M255 160l9 9h-9v-9z" fill="#0B8043"/>
+      <path d="M241 176h18M241 184h18M250 172v16" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <div class="lang-toggle">
+      <button data-lang="en" class="active" id="langEnBtn">EN</button>
+      <button data-lang="hi" id="langHiBtn">हिंग्लिश</button>
+    </div>
+  </header>
+
+  <!-- MODE SELECT SCREEN -->
+  <div class="screen visible" id="screenSelect">
+
+    <div class="hero">
+      <h2 class="hero-headline">Connect. <span class="hl-accent">Capture.</span> Automate.</h2>
+      <div class="sub" data-i18n="sub_header">Build your form, connect it to a Google Sheet, design the thank-you popup, and get ready-to-paste code.</div>
+    </div>
+
+    <div class="section-heading">
+      <span class="rule"></span>
+      <div class="mode-select-title" data-i18n="mode_select_title">What do you want to connect?</div>
+      <span class="rule"></span>
+    </div>
+
+    <div class="mode-grid">
+      <div class="mode-card" id="cardModeForm">
+        <div class="mc-head">
+          <div class="mc-icon"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg></div>
+          <div class="mc-body">
+            <h3 data-i18n="mode_card_form_title">Build a new form</h3>
+            <p data-i18n="mode_card_form_desc">Create a form from scratch — fields, styling, thank-you popup — and get the code to add to your site.</p>
+          </div>
+        </div>
+        <div class="mc-divider"></div>
+        <div class="mc-foot"><div class="mc-cta">Start building →</div></div>
+      </div>
+      <div class="mode-card" id="cardModeLanding">
+        <div class="mc-head">
+          <div class="mc-icon"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+          <div class="mc-body">
+            <h3 data-i18n="mode_card_landing_title">I already have a landing page</h3>
+            <p data-i18n="mode_card_landing_desc">Paste your existing landing page code (e.g. from an AI page builder). We'll detect the form and wire the webhook into it for you.</p>
+          </div>
+        </div>
+        <div class="mc-divider"></div>
+        <div class="mc-foot"><div class="mc-cta">Paste your code →</div></div>
+      </div>
+    </div>
+
+    <div class="feature-strip">
+      <div class="feature-item">
+        <div class="fi-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <span><b>2-minute</b> setup, no coding needed</span>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <span><b>Free</b> — runs on your own Google Sheet</span>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0V8zM12 18v4"/></svg></div>
+        <span>Works with <b>WordPress</b>, AI builders, any HTML</span>
+      </div>
+    </div>
+
+    <div class="flow-section">
+      <div class="flow-section-title">
+        <span class="spark"><svg width="24" height="16" viewBox="0 0 34 22" fill="currentColor"><path d="M22 0l1.9 6.2L30 8l-6.1 1.8L22 16l-1.9-6.2L14 8l6.1-1.8L22 0z"/><path d="M8 9l1.2 3.9L13 14l-3.8 1.2L8 19l-1.2-3.8L3 14l3.8-1.1L8 9z"/></svg></span>
+        Your data journey
+        <span class="spark"><svg width="24" height="16" viewBox="0 0 34 22" fill="currentColor"><path d="M12 0l1.9 6.2L20 8l-6.1 1.8L12 16l-1.9-6.2L4 8l6.1-1.8L12 0z"/><path d="M26 9l1.2 3.9L31 14l-3.8 1.2L26 19l-1.2-3.8L21 14l3.8-1.1L26 9z"/></svg></span>
+      </div>
+      <div class="flow-diagram">
+        <div class="flow-node">
+          <div class="fn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
+          </div>
+          <div class="fn-text">
+            <span>1. Create</span>
+            <small>Design or connect your form</small>
+          </div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-node">
+          <div class="fn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"/><path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06"/><path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"/></svg>
+          </div>
+          <div class="fn-text">
+            <span>2. Connect</span>
+            <small>We handle the webhook automatically</small>
+          </div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-node">
+          <div class="fn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          </div>
+          <div class="fn-text">
+            <span>3. Collect</span>
+            <small>Leads land in your Google Sheet</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FORM MODE ============ -->
+  <div class="screen" id="screenForm">
+    <button class="back-link" data-i18n="back_link" id="backFromFormBtn">← choose a different option</button>
+    <div class="steps-tracker">
+      <div class="step-pill active" id="pill-1"><span class="num">1</span> Build form</div>
+      <div class="step-pill" id="pill-2"><span class="num">2</span> Connect sheet</div>
+      <div class="step-pill" id="pill-3"><span class="num">3</span> Thank-you popup</div>
+      <div class="step-pill" id="pill-4"><span class="num">4</span> Get code</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step-panel visible" id="step1">
+      <div class="grid2">
+        <div>
+          <div class="panel">
+            <h2>Fields <span class="tag" id="fieldCount">3</span></h2>
+            <div id="fieldsContainer"></div>
+            <button class="add-field" id="addFieldBtn">+ add field</button>
+
+            <h2>Form text</h2>
+            <label class="small">Title</label>
+            <input class="text-input" id="formTitle" value="Get in touch">
+            <label class="small">Subtitle (optional)</label>
+            <textarea class="text-input" id="formSubtitle">Fill this out and we'll get back to you.</textarea>
+            <label class="small">Button text</label>
+            <input class="text-input" id="buttonLabel" value="Submit">
+
+            <h2>Size &amp; shape</h2>
+            <div class="style-row"><label>Form width</label><input type="range" id="styleWidth" min="280" max="800" value="480"><span id="styleWidthVal" class="style-val">480px</span></div>
+            <div class="style-row"><label>Inner padding</label><input type="range" id="stylePadding" min="10" max="48" value="20"><span id="stylePaddingVal" class="style-val">20px</span></div>
+            <div class="style-row"><label>Field spacing</label><input type="range" id="styleSpacing" min="6" max="28" value="12"><span id="styleSpacingVal" class="style-val">12px</span></div>
+            <div class="style-row"><label>Corner radius</label><input type="range" id="styleRadius" min="0" max="24" value="4"><span id="styleRadiusVal" class="style-val">4px</span></div>
+            <div class="style-row">
+              <label>Alignment</label>
+              <select id="styleLayout">
+                <option value="stacked" selected>Full width of page</option>
+                <option value="boxed">Fixed-width card</option>
+              </select>
+            </div>
+
+            <h2>Typography</h2>
+            <div class="style-row">
+              <label>Font</label>
+              <select id="styleFont">
+                <option value="system-sans" selected>Sans-serif (system)</option>
+                <option value="system-serif">Serif (system)</option>
+                <option value="system-mono">Monospace (system)</option>
+                <option value="system-rounded">Rounded (system)</option>
+                <option value="google-poppins">Poppins</option>
+                <option value="google-inter">Inter</option>
+                <option value="google-montserrat">Montserrat</option>
+                <option value="google-playfair">Playfair Display</option>
+                <option value="google-merriweather">Merriweather</option>
+              </select>
+            </div>
+            <div class="style-row"><label>Title font size</label><input type="range" id="styleTitleSize" min="14" max="34" value="18"><span id="styleTitleSizeVal" class="style-val">18px</span></div>
+            <div class="style-row"><label>Text font size</label><input type="range" id="styleBodySize" min="11" max="20" value="14"><span id="styleBodySizeVal" class="style-val">14px</span></div>
+
+            <h2>Colors</h2>
+            <div class="style-row"><label>Background</label><input type="color" id="styleBg" value="#ffffff"><input type="text" class="hex-input" id="styleBg_hex" value="#ffffff"></div>
+            <div class="style-row"><label>Label / heading color</label><input type="color" id="styleText" value="#1a1a1a"><input type="text" class="hex-input" id="styleText_hex" value="#1a1a1a"></div>
+            <div class="style-row"><label>Answer text color</label><input type="color" id="styleInputText" value="#1a1a1a"><input type="text" class="hex-input" id="styleInputText_hex" value="#1a1a1a"></div>
+            <div class="style-row"><label>Input border</label><input type="color" id="styleBorder" value="#d0d5db"><input type="text" class="hex-input" id="styleBorder_hex" value="#d0d5db"></div>
+            <div class="style-row"><label>Button color</label><input type="color" id="styleButton" value="#1e7a5c"><input type="text" class="hex-input" id="styleButton_hex" value="#1e7a5c"></div>
+            <div class="style-row"><label>Button text</label><input type="color" id="styleButtonText" value="#ffffff"><input type="text" class="hex-input" id="styleButtonText_hex" value="#ffffff"></div>
+            <div class="style-row">
+              <label>Label style</label>
+              <select id="styleLabelStyle">
+                <option value="boxed" selected>Label box + answer box</option>
+                <option value="above">Label above field</option>
+                <option value="placeholder">Placeholder only</option>
+              </select>
+            </div>
+            <div class="toggle-row"><input type="checkbox" id="styleShadow"> <label for="styleShadow">Add drop shadow</label></div>
+
+            <h2>Background image</h2>
+            <div class="bg-upload">
+              <label class="bg-pick" for="styleBgImage">Choose image from gallery</label>
+              <input type="file" id="styleBgImage" accept="image/*">
+              <button type="button" class="bg-remove" id="styleBgImageRemove">Remove</button>
+            </div>
+            <div class="bg-note" id="bgImageName">No image chosen — the background color is used.</div>
+            <div class="style-row"><label>Darken image</label><input type="range" id="styleBgDim" min="0" max="80" value="30"><span id="styleBgDimVal" class="style-val">30%</span></div>
+          </div>
+        </div>
+
+        <div class="preview-shell">
+          <div class="panel">
+            <h2>Live preview</h2>
+            <div class="preview-canvas"><div class="preview-form" id="previewForm"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <span></span>
+        <button class="generate-btn" id="toStep2Btn">Next: connect to Google Sheet</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-panel" id="step2">
+      <div class="panel">
+        <h2>Connect to Google Sheet</h2>
+        <label class="small">Your Google Sheet link (for your reference)</label>
+        <input class="text-input" id="sheetUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/...">
+
+        <div class="code-box" style="margin-top:16px;">
+          <button class="copy-btn" data-target="scriptCode">copy</button>
+          <pre id="scriptCode"></pre>
+          <div class="steps-mini" data-i18n="step2_instructions">
+            <b>Where to paste this:</b> open your Sheet → Extensions → Apps Script → paste this code → click "Deploy" → "New deployment" → type "Web app" → Execute as: Me, Who has access: Anyone → Deploy. Copy the URL Google gives you and paste it below.
+          </div>
+        </div>
+
+        <div class="deploy-box">
+          <label class="small">Paste the deployed Web App URL here</label>
+          <div class="deploy-row">
+            <input id="webhookInput" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+            <button id="applyWebhookBtn">Apply</button>
+          </div>
+          <div class="status" id="webhookStatus" data-i18n="webhook_status_default">This gets embedded into your website code in the final step.</div>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="generate-btn secondary" id="backTo1Btn">← Back</button>
+        <button class="generate-btn" id="toStep3Btn">Next: design thank-you popup</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-panel" id="step3">
+      <div class="grid2">
+        <div class="panel">
+          <h2>Thank-you popup</h2>
+          <label class="small">Heading</label>
+          <input class="text-input" id="popupHeading" value="Thank you!">
+          <label class="small">Subheading</label>
+          <textarea class="text-input" id="popupSubheading">We've received your submission and will get back to you soon.</textarea>
+          <label class="small">Button text</label>
+          <input class="text-input" id="popupButtonText" value="Close">
+
+          <h2>Popup colors</h2>
+          <div class="style-row"><label>Background</label><input type="color" id="popupBg" value="#ffffff"><input type="text" class="hex-input" id="popupBg_hex" value="#ffffff"></div>
+          <div class="style-row"><label>Text color</label><input type="color" id="popupText" value="#1a1a1a"><input type="text" class="hex-input" id="popupText_hex" value="#1a1a1a"></div>
+          <div class="style-row"><label>Button color</label><input type="color" id="popupButtonColor" value="#4092ff"><input type="text" class="hex-input" id="popupButtonColor_hex" value="#4092ff"></div>
+          <div class="style-row"><label>Button text</label><input type="color" id="popupButtonTextColor" value="#ffffff"><input type="text" class="hex-input" id="popupButtonTextColor_hex" value="#ffffff"></div>
+        </div>
+        <div class="preview-shell">
+          <div class="panel">
+            <h2>Preview</h2>
+            <div class="popup-preview-wrap"><div class="popup-card" id="popupPreview"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="generate-btn secondary" id="backTo2Btn">← Back</button>
+        <button class="generate-btn" id="toStep4Btn">Next: get website code</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-panel" id="step4">
+      <div class="panel">
+        <h2>Your website code</h2>
+        <div class="code-box">
+          <button class="copy-btn" data-target="htmlCode">copy</button>
+          <pre id="htmlCode"></pre>
+          <div class="steps-mini" data-i18n="step4_instructions">
+            <b>Where to paste this:</b> in WordPress, add a "Custom HTML" block wherever you want the form to appear, and paste this whole code in. The thank-you popup will appear automatically after a successful submission.
+          </div>
+        </div>
+      </div>
+      <div class="step-nav">
+        <button class="generate-btn secondary" id="backTo3Btn">← Back</button>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LANDING PAGE MODE ============ -->
+  <div class="screen" id="screenLanding">
+    <button class="back-link" data-i18n="back_link" id="backFromLandingBtn">← choose a different option</button>
+    <div class="steps-tracker">
+      <div class="step-pill active" id="lpill-1"><span class="num">1</span> Paste your code</div>
+      <div class="step-pill" id="lpill-2"><span class="num">2</span> Connect sheet</div>
+      <div class="step-pill" id="lpill-3"><span class="num">3</span> Get wired code</div>
+    </div>
+
+    <!-- L STEP 1 -->
+    <div class="step-panel visible" id="lstep1">
+      <div class="panel panel-tinted">
+        <div class="panel-head">
+          <span class="ph-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+          <h2 data-i18n="landing_paste_label">Paste your landing page's full HTML code</h2>
+        </div>
+        <textarea class="code-input" id="landingCodeInput" placeholder="<html>...your full landing page code, including the <form>...</html>"></textarea>
+        <div class="steps-mini" data-i18n="landing_paste_hint">
+          Paste the complete code of your landing page — including the &lt;form&gt; tag with its input fields. This works with code generated by AI tools, page builders, or plain HTML.
+        </div>
+        <button class="generate-btn" id="detectFieldsBtn" style="margin-top:18px;" data-i18n="landing_detect_btn">Detect form fields</button>
+        <div class="status err" id="detectError" style="display:none;"></div>
+
+        <div id="detectedWrap" style="display:none;margin-top:26px;">
+          <h2 data-i18n="landing_detected_heading">Detected fields</h2>
+          <ul class="detected-list" id="detectedList"></ul>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <span></span>
+        <button class="generate-btn" id="lToStep2Btn" disabled>Next: connect to Google Sheet</button>
+      </div>
+    </div>
+
+    <!-- L STEP 2 -->
+    <div class="step-panel" id="lstep2">
+      <div class="panel">
+        <h2>Connect to Google Sheet</h2>
+        <label class="small">Your Google Sheet link (for your reference)</label>
+        <input class="text-input" id="lSheetUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/...">
+
+        <div class="code-box" style="margin-top:16px;">
+          <button class="copy-btn" data-target="lScriptCode">copy</button>
+          <pre id="lScriptCode"></pre>
+          <div class="steps-mini" data-i18n="step2_instructions">
+            <b>Where to paste this:</b> open your Sheet → Extensions → Apps Script → paste this code → click "Deploy" → "New deployment" → type "Web app" → Execute as: Me, Who has access: Anyone → Deploy. Copy the URL Google gives you and paste it below.
+          </div>
+        </div>
+
+        <div class="deploy-box">
+          <label class="small">Paste the deployed Web App URL here</label>
+          <div class="deploy-row">
+            <input id="lWebhookInput" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+            <button id="lApplyWebhookBtn">Apply</button>
+          </div>
+          <div class="status" id="lWebhookStatus" data-i18n="webhook_status_default">This gets embedded into your landing page code in the final step.</div>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="generate-btn secondary" id="lBackTo1Btn">← Back</button>
+        <button class="generate-btn" id="lToStep3Btn">Next: get wired code</button>
+      </div>
+    </div>
+
+    <!-- L STEP 3 -->
+    <div class="step-panel" id="lstep3">
+      <div class="panel">
+        <h2 data-i18n="landing_final_heading">Your landing page, with the webhook already wired in</h2>
+        <div class="code-box">
+          <button class="copy-btn" data-target="lFinalCode">copy</button>
+          <pre id="lFinalCode"></pre>
+          <div class="steps-mini" data-i18n="landing_final_instructions">
+            This is your original code with a small script added that sends submissions to your Google Sheet. Replace your old landing page code with this one — nothing else about your page's look changes.
+          </div>
+        </div>
+      </div>
+      <div class="step-nav">
+        <button class="generate-btn secondary" id="lBackTo2Btn">← Back</button>
+        <span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ i18n ============ */
+const I18N = {
+  sub_header: {
+    en: "Build your form, connect it to a Google Sheet, design the thank-you popup, and get ready-to-paste code.",
+    hi: "Apna form banao, Google Sheet se connect karo, thank-you popup design karo, aur ready-to-paste code lo."
+  },
+  mode_select_title: { en: "What do you want to connect?", hi: "Tumhe kya connect karna hai?" },
+  mode_card_form_title: { en: "Build a new form", hi: "Naya form banao" },
+  mode_card_form_desc: {
+    en: "Create a form from scratch — fields, styling, thank-you popup — and get the code to add to your site.",
+    hi: "Shuru se form banao — fields, styling, thank-you popup — aur apni site mein daalne wala code lo."
+  },
+  mode_card_landing_title: { en: "I already have a landing page", hi: "Mere paas already landing page hai" },
+  mode_card_landing_desc: {
+    en: "Paste your existing landing page code (e.g. from an AI page builder). We'll detect the form and wire the webhook into it for you.",
+    hi: "Apna existing landing page ka code paste karo (jaise AI se bana hua). Hum form detect karke usme khud webhook laga denge — form dobara banane ki zaroorat nahi."
+  },
+  back_link: { en: "← choose a different option", hi: "← doosra option choose karo" },
+  step2_instructions: {
+    en: '<b>Where to paste this:</b> open your Sheet → Extensions → Apps Script → paste this code → click "Deploy" → "New deployment" → type "Web app" → Execute as: Me, Who has access: Anyone → Deploy. Copy the URL Google gives you and paste it below.',
+    hi: '<b>Kaha paste karna hai:</b> apni Sheet kholo → Extensions → Apps Script → yeh code paste karo → "Deploy" dabao → "New deployment" → type "Web app" → Execute as: Me, Who has access: Anyone → Deploy. Jo URL Google dega, usse copy karke neeche paste karo.'
+  },
+  step4_instructions: {
+    en: '<b>Where to paste this:</b> in WordPress, add a "Custom HTML" block wherever you want the form to appear, and paste this whole code in. The thank-you popup will appear automatically after a successful submission.',
+    hi: '<b>Kaha paste karna hai:</b> WordPress mein jaha form dikhana hai wahan "Custom HTML" block daalo aur yeh poora code paste kar do. Successful submission ke baad thank-you popup apne aap dikh jayega.'
+  },
+  webhook_status_default: {
+    en: "This gets embedded into your website code in the final step.",
+    hi: "Yeh tumhare website code mein final step mein automatically embed ho jayega."
+  },
+  webhook_status_saved: {
+    en: "✓ Saved. This will be embedded in your website code in the final step.",
+    hi: "✓ Save ho gaya. Yeh final step mein tumhare website code mein embed ho jayega."
+  },
+  landing_paste_label: {
+    en: "Paste your landing page's full HTML code",
+    hi: "Apne landing page ka poora HTML code paste karo"
+  },
+  landing_paste_hint: {
+    en: "Paste the complete code of your landing page — including the <form> tag with its input fields. This works with code generated by AI tools, page builders, or plain HTML.",
+    hi: "Apne landing page ka pura code paste karo — jisme &lt;form&gt; tag aur uske input fields bhi shaamil hon. Yeh AI se bane code, page builder, ya plain HTML sabke saath kaam karta hai."
+  },
+  landing_detect_btn: { en: "Detect form fields", hi: "Form fields detect karo" },
+  landing_detected_heading: { en: "Detected fields", hi: "Mile hue fields" },
+  landing_no_form: {
+    en: "No <form> tag was found in the code you pasted. Make sure you copied the complete page code, including the form.",
+    hi: "Tumne jo code paste kiya usme koi &lt;form&gt; tag nahi mila. Poora page code copy karke dekho, form wala hissa bhi shaamil hona chahiye."
+  },
+  landing_no_fields: {
+    en: "A <form> was found, but it has no input fields we can read. Make sure you pasted the form along with its inputs.",
+    hi: "&lt;form&gt; toh mil gaya, lekin usme koi input field nahi mila. Dekh lo ki form ke saath uske inputs bhi paste hue hain."
+  },
+  landing_final_heading: {
+    en: "Your landing page, with the webhook already wired in",
+    hi: "Tumhara landing page, jisme webhook already laga hua hai"
+  },
+  landing_final_instructions: {
+    en: "This is your original code with a small script added that sends submissions to your Google Sheet. Replace your old landing page code with this one — nothing else about your page's look changes.",
+    hi: "Yeh tumhara wahi original code hai, bas ek chhota sa script add kiya gaya hai jo submissions ko tumhari Google Sheet mein bhejta hai. Apna purana code isse replace kar do — page ka look bilkul waisa hi rahega."
+  }
+};
+
+let currentLang = 'en';
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.dataset.i18n;
+    if(I18N[key]) el.innerHTML = I18N[key][currentLang];
+  });
+  document.getElementById('langEnBtn').classList.toggle('active', currentLang === 'en');
+  document.getElementById('langHiBtn').classList.toggle('active', currentLang === 'hi');
+}
+document.getElementById('langEnBtn').addEventListener('click', ()=>{ currentLang='en'; applyLang(); });
+document.getElementById('langHiBtn').addEventListener('click', ()=>{ currentLang='hi'; applyLang(); });
+
+/* ============ mode select ============ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=> s.classList.toggle('visible', s.id === id));
+}
+document.getElementById('cardModeForm').addEventListener('click', ()=> showScreen('screenForm'));
+document.getElementById('cardModeLanding').addEventListener('click', ()=> showScreen('screenLanding'));
+document.getElementById('backFromFormBtn').addEventListener('click', ()=> showScreen('screenSelect'));
+document.getElementById('backFromLandingBtn').addEventListener('click', ()=> showScreen('screenSelect'));
+
+/* ============ shared helpers ============ */
+function slugify(s){
+  return s.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || 'field';
+}
+const HEX_RE = /^#([0-9A-Fa-f]{6})$/;
+function wireColorHex(colorId){
+  const colorEl = document.getElementById(colorId);
+  const hexEl = document.getElementById(colorId + '_hex');
+  if(!colorEl || !hexEl) return;
+  colorEl.addEventListener('input', ()=>{
+    hexEl.value = colorEl.value;
+  });
+  hexEl.addEventListener('input', ()=>{
+    let v = hexEl.value.trim();
+    if(v && v[0] !== '#') v = '#' + v;
+    if(HEX_RE.test(v)){
+      colorEl.value = v;
+      colorEl.dispatchEvent(new Event('input'));
+    }
+  });
+}
+
+/* ============ copy to clipboard (with fallback) ============ */
+function copyText(text){
+  return new Promise((resolve, reject)=>{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(resolve).catch(()=>fallbackCopy(text, resolve, reject));
+    } else {
+      fallbackCopy(text, resolve, reject);
+    }
+  });
+}
+function fallbackCopy(text, resolve, reject){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    ok ? resolve() : reject(new Error('execCommand failed'));
+  }catch(err){ reject(err); }
+}
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    copyText(target.textContent).then(()=>{
+      btn.textContent = 'copied';
+      btn.classList.add('copied');
+      setTimeout(()=>{ btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1600);
+    }).catch(()=>{
+      btn.textContent = 'select + Ctrl/Cmd+C';
+      setTimeout(()=>{ btn.textContent = 'copy'; }, 2000);
+    });
+  });
+});
+
+/* generic Apps Script generator, used by both modes */
+function buildAppsScriptGeneric(keys, labels){
+  return `function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+
+  try {
+    // Read the header row, or create it from the first submission.
+    var lastCol = sheet.getLastColumn();
+    var headers = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+
+    if (headers.length === 0 || headers.join("") === "") {
+      headers = ["Timestamp"];
+      for (var k in data) { headers.push(k); }
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    } else {
+      // A field the sheet hasn't seen before gets its own new column.
+      for (var k2 in data) {
+        if (headers.indexOf(k2) === -1) {
+          headers.push(k2);
+          sheet.getRange(1, headers.length).setValue(k2);
+        }
+      }
+    }
+
+    // Put every value under its matching header, so nothing lands in the
+    // wrong column and no filled-in field is dropped.
+    var row = [];
+    for (var i = 0; i < headers.length; i++) {
+      var h = headers[i];
+      if (h === "Timestamp") {
+        row.push(new Date());
+      } else {
+        row.push(data[h] === undefined || data[h] === null ? "" : data[h]);
+      }
+    }
+    sheet.appendRow(row);
+  } finally {
+    lock.releaseLock();
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "success" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet() {
+  // Open your Web App URL in a browser: if you see this message, it is live.
+  return ContentService.createTextOutput("WireToSheet webhook is live.");
+}
+
+// You do not need to set up row 1 yourself — the headers are written on the
+// first submission, and any field you add to the form later gets its own
+// column automatically.
+//
+// Columns this form will fill: Timestamp, ${labels.join(', ')}`;
+}
+
+/* ================================================================
+   FORM MODE (build from scratch)
+   ================================================================ */
+let fields = [
+  {label:'Name', type:'text', required:true},
+  {label:'Email', type:'email', required:true},
+  {label:'Phone', type:'tel', required:false}
+];
+let webhookUrl = 'PASTE_YOUR_WEBHOOK_URL_HERE';
+
+const FONT_MAP = {
+  'system-sans':   { css: "'Helvetica Neue', Arial, sans-serif", google: null },
+  'system-serif':  { css: "Georgia, 'Times New Roman', serif", google: null },
+  'system-mono':   { css: "'Courier New', monospace", google: null },
+  'system-rounded':{ css: "'Trebuchet MS', sans-serif", google: null },
+  'google-poppins':     { css: "'Poppins', sans-serif", google: 'Poppins:wght@400;600' },
+  'google-inter':       { css: "'Inter', sans-serif", google: 'Inter:wght@400;600' },
+  'google-montserrat':  { css: "'Montserrat', sans-serif", google: 'Montserrat:wght@400;600' },
+  'google-playfair':    { css: "'Playfair Display', serif", google: 'Playfair+Display:wght@400;600' },
+  'google-merriweather':{ css: "'Merriweather', serif", google: 'Merriweather:wght@400;700' }
+};
+
+let bgImageData = '';
+
+// Shared bits so the preview and the generated code always look the same.
+function fieldColors(s){
+  return {
+    fieldBg:  s.bgImage ? 'rgba(255,255,255,0.92)' : 'transparent',
+    fieldSolid: s.bgImage ? '#ffffff' : s.bg,
+    labelBg:  s.bgImage ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.04)'
+  };
+}
+function backgroundCss(s){
+  if(!s.bgImage) return null;
+  const d = (s.bgDim / 100).toFixed(2);
+  return `linear-gradient(rgba(0,0,0,${d}), rgba(0,0,0,${d})), url("${s.bgImage}")`;
+}
+
+// Shrinks the picked photo before it is embedded, so the generated code stays usable.
+function readImageAsDataUrl(file, cb){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const img = new Image();
+    img.onload = ()=>{
+      try {
+        const max = 1400;
+        let w = img.width, h = img.height;
+        if(w > max){ h = Math.round(h * max / w); w = max; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(canvas.toDataURL('image/jpeg', 0.82));
+      } catch(err){
+        cb(reader.result);   // fall back to the original file
+      }
+    };
+    img.onerror = ()=> cb(reader.result);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function getMeta(){
+  return {
+    title: document.getElementById('formTitle').value,
+    subtitle: document.getElementById('formSubtitle').value,
+    buttonText: document.getElementById('buttonLabel').value || 'Submit'
+  };
+}
+function getStyle(){
+  const fontKey = document.getElementById('styleFont').value;
+  return {
+    bg: document.getElementById('styleBg').value,
+    text: document.getElementById('styleText').value,
+    border: document.getElementById('styleBorder').value,
+    button: document.getElementById('styleButton').value,
+    buttonText: document.getElementById('styleButtonText').value,
+    radius: document.getElementById('styleRadius').value,
+    spacing: document.getElementById('styleSpacing').value,
+    padding: document.getElementById('stylePadding').value,
+    width: document.getElementById('styleWidth').value,
+    titleSize: document.getElementById('styleTitleSize').value,
+    bodySize: document.getElementById('styleBodySize').value,
+    fontKey: fontKey,
+    font: FONT_MAP[fontKey].css,
+    inputText: document.getElementById('styleInputText').value,
+    bgImage: bgImageData,
+    bgDim: document.getElementById('styleBgDim').value,
+    labelStyle: document.getElementById('styleLabelStyle').value,
+    layout: document.getElementById('styleLayout').value,
+    shadow: document.getElementById('styleShadow').checked
+  };
+}
+function getPopup(){
+  return {
+    heading: document.getElementById('popupHeading').value || 'Thank you!',
+    subheading: document.getElementById('popupSubheading').value,
+    buttonText: document.getElementById('popupButtonText').value || 'Close',
+    bg: document.getElementById('popupBg').value,
+    text: document.getElementById('popupText').value,
+    button: document.getElementById('popupButtonColor').value,
+    buttonText2: document.getElementById('popupButtonTextColor').value
+  };
+}
+
+const fieldsContainer = document.getElementById('fieldsContainer');
+const fieldCount = document.getElementById('fieldCount');
+function renderFields(){
+  fieldsContainer.innerHTML = '';
+  fields.forEach((f, i) => {
+    const row = document.createElement('div');
+    row.className = 'field-row';
+    row.innerHTML = `
+      <input type="text" value="${f.label}" data-idx="${i}" class="fname">
+      <select data-idx="${i}" class="ftype">
+        <option value="text" ${f.type==='text'?'selected':''}>Text</option>
+        <option value="email" ${f.type==='email'?'selected':''}>Email</option>
+        <option value="tel" ${f.type==='tel'?'selected':''}>Phone</option>
+        <option value="number" ${f.type==='number'?'selected':''}>Number</option>
+        <option value="textarea" ${f.type==='textarea'?'selected':''}>Textarea</option>
+      </select>
+      <label class="req-toggle"><input type="checkbox" class="freq" data-idx="${i}" ${f.required?'checked':''}> req</label>
+      <button class="rm" data-idx="${i}">×</button>
+    `;
+    fieldsContainer.appendChild(row);
+  });
+  fieldCount.textContent = fields.length;
+  fieldsContainer.querySelectorAll('.fname').forEach(el=>{
+    el.addEventListener('input', e=>{ fields[e.target.dataset.idx].label = e.target.value; buildPreview(); });
+  });
+  fieldsContainer.querySelectorAll('.ftype').forEach(el=>{
+    el.addEventListener('change', e=>{ fields[e.target.dataset.idx].type = e.target.value; buildPreview(); });
+  });
+  fieldsContainer.querySelectorAll('.freq').forEach(el=>{
+    el.addEventListener('change', e=>{ fields[e.target.dataset.idx].required = e.target.checked; buildPreview(); });
+  });
+  fieldsContainer.querySelectorAll('.rm').forEach(el=>{
+    el.addEventListener('click', e=>{ fields.splice(e.target.dataset.idx,1); renderFields(); buildPreview(); });
+  });
+  buildPreview();
+}
+document.getElementById('addFieldBtn').addEventListener('click', ()=>{
+  fields.push({label:'New Field', type:'text', required:false});
+  renderFields();
+});
+
+function buildPreview(){
+  const s = getStyle();
+  const m = getMeta();
+  const box = document.getElementById('previewForm');
+  box.style.background = s.bg;
+  const bgCss = backgroundCss(s);
+  box.style.backgroundImage = bgCss || 'none';
+  box.style.backgroundSize = 'cover';
+  box.style.backgroundPosition = 'center';
+  box.style.color = s.text;
+  box.style.fontFamily = s.font;
+  box.style.fontSize = s.bodySize + 'px';
+  box.style.borderRadius = s.radius + 'px';
+  box.style.width = s.width + 'px';
+  box.style.boxShadow = s.shadow ? '0 4px 16px rgba(0,0,0,0.18)' : 'none';
+  box.style.border = s.layout === 'boxed' ? ('1px solid ' + s.border) : 'none';
+  box.style.padding = s.padding + 'px';
+
+  const c = fieldColors(s);
+  const inputStyle = `border:1px solid ${s.border};border-radius:${s.radius}px;color:${s.inputText};background:${c.fieldBg};font-family:${s.font};font-size:${s.bodySize}px;`;
+  const fieldsHtml = fields.map(f=>{
+    const star = f.required ? ' *' : '';
+    const placeholder = s.labelStyle === 'placeholder' ? (f.label + star) : '';
+    const inputHtml = f.type === 'textarea'
+      ? `<textarea rows="3" placeholder="${placeholder}" style="${inputStyle}"></textarea>`
+      : `<input type="${f.type}" placeholder="${placeholder}" style="${inputStyle}">`;
+
+    if(s.labelStyle === 'boxed'){
+      const labelBoxStyle = `flex:0 0 34%;display:flex;align-items:center;padding:9px 12px;border:1px solid ${s.border};border-radius:${s.radius}px;background:${c.labelBg};color:${s.text};font-size:${s.bodySize}px;font-weight:600;`;
+      return `<div class="pf-field" style="display:flex;gap:8px;align-items:stretch;margin-bottom:${s.spacing}px;">`
+           + `<div style="${labelBoxStyle}">${f.label}${star}</div>`
+           + `<div style="flex:1;min-width:0;">${inputHtml}</div></div>`;
+    }
+    const labelHtml = s.labelStyle === 'above' ? `<label>${f.label}${star}</label>` : '';
+    return `<div class="pf-field" style="margin-bottom:${s.spacing}px;">${labelHtml}${inputHtml}</div>`;
+  }).join('');
+  const titleHtml = m.title ? `<div class="pf-title" style="font-size:${s.titleSize}px;font-weight:600;">${m.title}</div>` : '';
+  const subtitleHtml = m.subtitle ? `<div class="pf-subtitle" style="font-size:${s.bodySize}px;">${m.subtitle}</div>` : '';
+  const buttonHtml = `<button type="button" style="background:${s.button};color:${s.buttonText};border-radius:${s.radius}px;font-size:${s.bodySize}px;">${m.buttonText}</button>`;
+  box.innerHTML = titleHtml + subtitleHtml + fieldsHtml + buttonHtml;
+}
+
+['formTitle','formSubtitle','buttonLabel',
+ 'styleBg','styleText','styleBorder','styleButton','styleButtonText',
+ 'styleRadius','styleSpacing','stylePadding','styleWidth','styleTitleSize','styleBodySize',
+ 'styleFont','styleLabelStyle','styleLayout','styleShadow','styleInputText','styleBgDim'
+].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    document.getElementById('styleRadiusVal').textContent = document.getElementById('styleRadius').value + 'px';
+    document.getElementById('styleSpacingVal').textContent = document.getElementById('styleSpacing').value + 'px';
+    document.getElementById('stylePaddingVal').textContent = document.getElementById('stylePadding').value + 'px';
+    document.getElementById('styleWidthVal').textContent = document.getElementById('styleWidth').value + 'px';
+    document.getElementById('styleTitleSizeVal').textContent = document.getElementById('styleTitleSize').value + 'px';
+    document.getElementById('styleBodySizeVal').textContent = document.getElementById('styleBodySize').value + 'px';
+    document.getElementById('styleBgDimVal').textContent = document.getElementById('styleBgDim').value + '%';
+    buildPreview();
+  });
+});
+
+function buildPopupPreview(){
+  const p = getPopup();
+  const s = getStyle();
+  const card = document.getElementById('popupPreview');
+  card.style.background = p.bg;
+  card.style.color = p.text;
+  card.style.fontFamily = s.font;
+  card.style.borderRadius = s.radius + 'px';
+  card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.2)';
+  card.innerHTML = `
+    <div class="pc-heading" style="font-size:${s.titleSize}px;font-weight:600;">${p.heading}</div>
+    <div class="pc-sub">${p.subheading}</div>
+    <button style="background:${p.button};color:${p.buttonText2};border-radius:${s.radius}px;">${p.buttonText}</button>
+  `;
+}
+['popupHeading','popupSubheading','popupButtonText','popupBg','popupText','popupButtonColor','popupButtonTextColor']
+  .forEach(id=> document.getElementById(id).addEventListener('input', buildPopupPreview));
+
+function buildAppsScript(){
+  const keys = ['page_url', ...fields.map(f=>slugify(f.label))];
+  const labels = ['Page URL', ...fields.map(f=>f.label)];
+  return buildAppsScriptGeneric(keys, labels);
+}
+
+function buildHtml(){
+  const s = getStyle();
+  const m = getMeta();
+  const p = getPopup();
+  const c = fieldColors(s);
+  const fontInfo = FONT_MAP[s.fontKey];
+  const fontImport = fontInfo.google
+    ? `@import url('https://fonts.googleapis.com/css2?family=${fontInfo.google}&display=swap');\n`
+    : '';
+
+  const inputs = fields.map(f=>{
+    const id = slugify(f.label);
+    const star = f.required ? ' *' : '';
+    const req = f.required ? ' required' : '';
+    const placeholder = s.labelStyle === 'placeholder' ? ` placeholder="${f.label}${star}"` : '';
+    const control = f.type === 'textarea'
+      ? `<textarea id="${id}" data-wf="${id}" class="wf-field"${placeholder}${req}></textarea>`
+      : `<input type="${f.type}" id="${id}" data-wf="${id}" class="wf-field"${placeholder}${req}>`;
+
+    if(s.labelStyle === 'boxed'){
+      return `  <div class="wf-row">\n    <label class="wf-label" for="${id}">${f.label}${star}</label>\n    ${control}\n  </div>`;
+    }
+    if(s.labelStyle === 'above'){
+      return `  <label for="${id}">${f.label}${star}</label>\n  ${control}`;
+    }
+    return `  ${control}`;
+  }).join('\n');
+
+  const dataObj = fields.map(f=>{
+    const id = slugify(f.label);
+    return `    ${id}: fieldValue("${id}")`;
+  }).join(',\n');
+  const dataObjFull = `    page_url: window.location.href,\n${dataObj}`;
+
+  const alignCss = s.layout === 'boxed' ? `  margin: 0 auto;` : '';
+  const shadowCss = s.shadow ? `  box-shadow: 0 4px 16px rgba(0,0,0,0.18);` : '';
+  const bgCss = backgroundCss(s);
+  const bgImageCss = bgCss
+    ? `  background-image: ${bgCss};\n  background-size: cover;\n  background-position: center;`
+    : '';
+
+  return `<style>
+${fontImport}#myForm {
+  font-family: ${s.font};
+  font-size: ${s.bodySize}px;
+  background: ${s.bg};
+${bgImageCss}
+  color: ${s.text};
+  padding: ${s.padding}px;
+  border-radius: ${s.radius}px;
+  width: ${s.width}px;
+  max-width: 100%;
+  box-sizing: border-box;
+${alignCss}
+${shadowCss}
+}
+#myForm h3.wf-title { margin: 0 0 6px; font-size: ${s.titleSize}px; color: ${s.text}; }
+#myForm p.wf-subtitle { margin: 0 0 16px; font-size: ${s.bodySize}px; color: ${s.text}; opacity: 0.8; }
+#myForm label { display: block; font-size: ${Math.max(s.bodySize-2,10)}px; margin-bottom: 4px; color: ${s.text}; opacity: 0.85; }
+
+/* one box says what to fill in, the next box is where it gets filled in */
+#myForm .wf-row {
+  display: flex; gap: 8px; align-items: stretch; margin-bottom: ${s.spacing}px;
+}
+#myForm .wf-row .wf-label {
+  flex: 0 0 34%; display: flex; align-items: center; margin: 0;
+  padding: 9px 12px; border: 1px solid ${s.border}; border-radius: ${s.radius}px;
+  background: ${c.labelBg}; color: ${s.text}; opacity: 1;
+  font-size: ${s.bodySize}px; font-weight: 600; box-sizing: border-box;
+}
+#myForm .wf-row .wf-field { flex: 1; min-width: 0; margin-bottom: 0; }
+@media (max-width: 520px) {
+  #myForm .wf-row { flex-direction: column; gap: 6px; }
+  #myForm .wf-row .wf-label { flex: none; }
+}
+
+#myForm .wf-field {
+  display: block; width: 100%; box-sizing: border-box; margin-bottom: ${s.spacing}px;
+  padding: 10px 12px; border: 1px solid ${s.border}; border-radius: ${s.radius}px;
+  font-family: inherit; font-size: ${s.bodySize}px; background: ${c.fieldBg};
+  /* forced, so the theme of your site cannot recolour what people type */
+  color: ${s.inputText} !important;
+  -webkit-text-fill-color: ${s.inputText};
+}
+#myForm .wf-field::placeholder { color: ${s.inputText}; opacity: 0.55; }
+#myForm .wf-field:-webkit-autofill {
+  -webkit-text-fill-color: ${s.inputText} !important;
+  box-shadow: 0 0 0 1000px ${c.fieldSolid} inset !important;
+}
+#myForm textarea.wf-field { min-height: 90px; resize: vertical; }
+#myForm button {
+  background: ${s.button}; color: ${s.buttonText}; border: none; padding: 11px 20px;
+  border-radius: ${s.radius}px; font-size: ${s.bodySize}px; font-weight: 600; cursor: pointer;
+}
+#myForm button:hover { opacity: 0.9; }
+#myForm button[disabled] { opacity: 0.6; cursor: wait; }
+#wf-error {
+  display: none; margin: 12px 0 0; font-size: ${Math.max(s.bodySize-1,11)}px;
+  color: #b3261e; background: #fdecea; border: 1px solid #f5c6c2;
+  padding: 9px 12px; border-radius: ${s.radius}px;
+}
+#wf-error.active { display: block; }
+
+#wf-thankyou-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  align-items: center; justify-content: center; z-index: 9999;
+}
+#wf-thankyou-overlay.active { display: flex; }
+#wf-thankyou-card {
+  font-family: ${s.font}; background: ${p.bg}; color: ${p.text}; padding: 28px 26px;
+  border-radius: ${s.radius}px; max-width: 340px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+#wf-thankyou-card h4 { margin: 0 0 8px; font-size: ${s.titleSize}px; }
+#wf-thankyou-card p { margin: 0 0 18px; font-size: ${s.bodySize}px; opacity: 0.85; line-height: 1.5; }
+#wf-thankyou-card button {
+  background: ${p.button}; color: ${p.buttonText2}; border: none; padding: 9px 20px;
+  border-radius: ${s.radius}px; font-weight: 600; cursor: pointer; font-size: ${s.bodySize}px;
+}
+<\/style>
+
+<form id="myForm">
+${m.title ? `  <h3 class="wf-title">${m.title}</h3>\n` : ''}${m.subtitle ? `  <p class="wf-subtitle">${m.subtitle}</p>\n` : ''}${inputs}
+  <button type="submit">${m.buttonText}</button>
+  <p id="wf-error">Could not send right now. Please check your connection and try again.</p>
+</form>
+
+<div id="wf-thankyou-overlay">
+  <div id="wf-thankyou-card">
+    <h4>${p.heading}</h4>
+    <p>${p.subheading}</p>
+    <button id="wf-thankyou-close">${p.buttonText}</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var form = document.getElementById("myForm");
+  var overlay = document.getElementById("wf-thankyou-overlay");
+  var errorBox = document.getElementById("wf-error");
+  var submitBtn = form.querySelector('button[type="submit"]');
+
+  // Look the field up inside this form only, so an id used elsewhere on the
+  // page cannot break the submission.
+  function fieldValue(key){
+    var el = form.querySelector('[data-wf="' + key + '"]');
+    return el ? el.value : "";
+  }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    errorBox.classList.remove("active");
+    submitBtn.disabled = true;
+
+    var data = {
+${dataObjFull}
+    };
+
+    fetch("${webhookUrl}", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(data)
+    }).then(function(){
+      submitBtn.disabled = false;
+      form.reset();
+      overlay.classList.add("active");
+    }).catch(function(err){
+      submitBtn.disabled = false;
+      console.error("Form submission failed:", err);
+      errorBox.classList.add("active");
+    });
+  });
+
+  document.getElementById("wf-thankyou-close").addEventListener("click", function(){
+    overlay.classList.remove("active");
+  });
+  overlay.addEventListener("click", function(e){
+    if (e.target === overlay) overlay.classList.remove("active");
+  });
+})();
+<\/script>`;
+}
+
+function showFormStep(n){
+  ['step1','step2','step3','step4'].forEach((id,i)=>{
+    document.getElementById(id).classList.toggle('visible', i === n-1);
+  });
+  [1,2,3,4].forEach(i=>{
+    const pill = document.getElementById('pill-'+i);
+    pill.classList.toggle('active', i === n);
+    pill.classList.toggle('done', i < n);
+    pill.querySelector('.num').textContent = i < n ? '✓' : i;
+  });
+}
+document.getElementById('toStep2Btn').addEventListener('click', ()=>{
+  document.getElementById('scriptCode').textContent = buildAppsScript();
+  showFormStep(2);
+});
+document.getElementById('backTo1Btn').addEventListener('click', ()=> showFormStep(1));
+document.getElementById('toStep3Btn').addEventListener('click', ()=>{ buildPopupPreview(); showFormStep(3); });
+document.getElementById('backTo2Btn').addEventListener('click', ()=> showFormStep(2));
+document.getElementById('toStep4Btn').addEventListener('click', ()=>{
+  document.getElementById('htmlCode').textContent = buildHtml();
+  showFormStep(4);
+});
+document.getElementById('backTo3Btn').addEventListener('click', ()=> showFormStep(3));
+
+document.getElementById('applyWebhookBtn').addEventListener('click', ()=>{
+  const val = document.getElementById('webhookInput').value.trim();
+  if(!val) return;
+  webhookUrl = val;
+  const status = document.getElementById('webhookStatus');
+  status.removeAttribute('data-i18n');
+  status.innerHTML = I18N.webhook_status_saved[currentLang];
+  status.classList.add('ok');
+});
+
+['styleBg','styleText','styleInputText','styleBorder','styleButton','styleButtonText',
+ 'popupBg','popupText','popupButtonColor','popupButtonTextColor'
+].forEach(wireColorHex);
+
+/* background image picker */
+document.getElementById('styleBgImage').addEventListener('change', e=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  readImageAsDataUrl(file, dataUrl=>{
+    bgImageData = dataUrl;
+    const kb = Math.round(dataUrl.length * 0.75 / 1024);
+    document.getElementById('bgImageName').textContent =
+      file.name + ' — about ' + kb + ' KB will be embedded into your code.';
+    buildPreview();
+  });
+});
+document.getElementById('styleBgImageRemove').addEventListener('click', ()=>{
+  bgImageData = '';
+  document.getElementById('styleBgImage').value = '';
+  document.getElementById('bgImageName').textContent = 'No image chosen — the background color is used.';
+  buildPreview();
+});
+
+renderFields();
+buildPopupPreview();
+
+/* ================================================================
+   LANDING PAGE MODE (existing AI-built page + inject webhook)
+   ================================================================ */
+let landingParsed = null; // { formId, formIndex, fields: [{key, label}] }
+let landingWebhookUrl = 'PASTE_YOUR_WEBHOOK_URL_HERE';
+
+function parseLandingCode(html){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const forms = Array.from(doc.querySelectorAll('form'));
+  if(forms.length === 0) return { error: 'no_form' };
+
+  const usable = el=>{
+    const type = (el.getAttribute('type') || 'text').toLowerCase();
+    return !['submit','button','hidden','reset','image','file','search'].includes(type);
+  };
+
+  // Pick the form with the most real fields — that is the lead form, not the
+  // nav search box or a one-input newsletter strip.
+  let form = null, formIndex = 0, best = 0;
+  for(let i = 0; i < forms.length; i++){
+    const count = Array.from(forms[i].querySelectorAll('input, textarea, select')).filter(usable).length;
+    if(count > best){
+      best = count;
+      form = forms[i];
+      formIndex = i;
+    }
+  }
+  if(!form) return { error: 'no_fields' };
+
+  const controls = Array.from(form.querySelectorAll('input, textarea, select')).filter(usable);
+
+  // Map each <label for="..."> to its text once, instead of building a
+  // selector per field — no escaping needed, works in every browser.
+  const labelFor = {};
+  Array.from(doc.querySelectorAll('label[for]')).forEach(l=>{
+    const target = l.getAttribute('for');
+    const text = l.textContent.trim();
+    if(target && text && !labelFor[target]) labelFor[target] = text;
+  });
+
+  const seen = new Set();
+  const detected = [];
+  controls.forEach((el, i)=>{
+    const id = el.getAttribute('id');
+    const name = el.getAttribute('name');
+    // name first: that's what the browser itself uses to identify a field
+    const key = name || id || el.getAttribute('placeholder') || ('field_' + (i + 1));
+    if(seen.has(key)) return;
+    seen.add(key);
+    let label = el.getAttribute('placeholder') || el.getAttribute('aria-label') || name || id || key;
+    if(id && labelFor[id]) label = labelFor[id];
+    detected.push({ key, label: label || key });
+  });
+
+  if(detected.length === 0) return { error: 'no_fields' };
+  return { formId: form.getAttribute('id') || null, formIndex, fields: detected };
+}
+
+document.getElementById('detectFieldsBtn').addEventListener('click', ()=>{
+  const code = document.getElementById('landingCodeInput').value;
+  const errBox = document.getElementById('detectError');
+  errBox.style.display = 'none';
+  document.getElementById('detectedWrap').style.display = 'none';
+  document.getElementById('lToStep2Btn').disabled = true;
+
+  if(!code.trim()){ return; }
+  const result = parseLandingCode(code);
+
+  if(result.error === 'no_form'){
+    errBox.innerHTML = I18N.landing_no_form[currentLang];
+    errBox.style.display = 'block';
+    return;
+  }
+  if(result.error === 'no_fields'){
+    errBox.innerHTML = I18N.landing_no_fields[currentLang];
+    errBox.style.display = 'block';
+    return;
+  }
+
+  landingParsed = result;
+  const list = document.getElementById('detectedList');
+  list.innerHTML = result.fields.map(f=>
+    `<li><span>${f.label}</span><span class="dl-key">${f.key}</span></li>`
+  ).join('');
+  document.getElementById('detectedWrap').style.display = 'block';
+  document.getElementById('lToStep2Btn').disabled = false;
+});
+
+function buildLandingAppsScript(){
+  const keys = [...landingParsed.fields.map(f=>f.key), 'page_url'];
+  const labels = [...landingParsed.fields.map(f=>f.label), 'Page URL'];
+  return buildAppsScriptGeneric(keys, labels);
+}
+
+function buildLandingInjection(){
+  // Target the form without touching the page's markup: by its own id if it has
+  // one, otherwise by matching the fields we detected, then by position.
+  const idLookup = landingParsed.formId
+    ? `document.getElementById(${JSON.stringify(landingParsed.formId)})`
+    : 'null';
+  const keyList = JSON.stringify(landingParsed.fields.map(f=>f.key));
+
+  return `<script>
+(function(){
+  var WEBHOOK_URL = ${JSON.stringify(landingWebhookUrl)};
+  var FIELD_KEYS = ${keyList};
+  var FORM_INDEX = ${landingParsed.formIndex};
+  var busy = false;
+
+  // Finds the form at the moment of the click, so it also works when the page
+  // builds its form with JavaScript after loading.
+  function findForm(){
+    var byId = ${idLookup};
+    if (byId) return byId;
+    var forms = document.querySelectorAll("form");
+    if (!forms.length) return null;
+    var best = null, bestScore = -1;
+    for (var i = 0; i < forms.length; i++){
+      var score = 0;
+      for (var k = 0; k < FIELD_KEYS.length; k++){
+        try {
+          if (forms[i].querySelector('[name="' + FIELD_KEYS[k] + '"],[id="' + FIELD_KEYS[k] + '"]')) score++;
+        } catch (err) {}
+      }
+      score = score * 1000 + forms[i].querySelectorAll("input, textarea, select").length;
+      if (i === FORM_INDEX) score += 1;
+      if (score > bestScore){ bestScore = score; best = forms[i]; }
+    }
+    return best;
+  }
+
+  // Reads the live form, so every filled-in field is captured no matter how
+  // the page was built.
+  function collectData(form){
+    var data = {};
+    var els = form.querySelectorAll("input, textarea, select");
+    for (var i = 0; i < els.length; i++){
+      var el = els[i];
+      var type = (el.type || "text").toLowerCase();
+      if (type === "submit" || type === "button" || type === "reset" ||
+          type === "image" || type === "file" || type === "hidden" ||
+          type === "search") continue;
+
+      var key = el.name || el.id || el.getAttribute("placeholder") || ("field_" + (i + 1));
+
+      if (type === "checkbox"){
+        var on = (el.value && el.value !== "on") ? el.value : "Yes";
+        if (el.checked) data[key] = data[key] ? data[key] + ", " + on : on;
+        else if (!(key in data)) data[key] = "";
+      } else if (type === "radio"){
+        if (el.checked) data[key] = el.value;
+        else if (!(key in data)) data[key] = "";
+      } else if (el.multiple && el.selectedOptions){
+        var picked = [];
+        for (var j = 0; j < el.selectedOptions.length; j++) picked.push(el.selectedOptions[j].value);
+        data[key] = picked.join(", ");
+      } else {
+        data[key] = el.value || "";
+      }
+    }
+    data.page_url = window.location.href;
+    return data;
+  }
+
+  // A small message of our own, so the browser's "<site> says..." box never appears.
+  function showMessage(title, body){
+    var overlay = document.createElement("div");
+    overlay.setAttribute("style", "position:fixed;inset:0;background:rgba(0,0,0,0.5);" +
+      "display:flex;align-items:center;justify-content:center;z-index:2147483647;");
+    var card = document.createElement("div");
+    card.setAttribute("style", "background:#fff;color:#1a1a1a;max-width:340px;margin:16px;" +
+      "padding:26px 24px;border-radius:12px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.3);" +
+      "font-family:system-ui,-apple-system,'Segoe UI',sans-serif;");
+    var h = document.createElement("div");
+    h.setAttribute("style", "font-size:18px;font-weight:700;margin-bottom:8px;");
+    h.textContent = title;
+    var p = document.createElement("div");
+    p.setAttribute("style", "font-size:14px;line-height:1.5;opacity:0.8;margin-bottom:18px;");
+    p.textContent = body;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Close";
+    btn.setAttribute("style", "background:#1a1a1a;color:#fff;border:none;padding:10px 22px;" +
+      "border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;");
+    function close(){ if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+    btn.addEventListener("click", close);
+    overlay.addEventListener("click", function(e){ if (e.target === overlay) close(); });
+    card.appendChild(h); card.appendChild(p); card.appendChild(btn);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+  }
+
+  function send(form){
+    if (busy) return;
+
+    // Let the page's own required-field validation speak first.
+    if (typeof form.checkValidity === "function" && !form.checkValidity()){
+      if (form.reportValidity) form.reportValidity();
+      return;
+    }
+
+    busy = true;
+    setTimeout(function(){ busy = false; }, 2000);
+
+    var data = collectData(form);
+    fetch(WEBHOOK_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(data)
+    }).then(function(){
+      try { form.reset(); } catch (err) {}
+      showMessage("Thank you!", "We have received your submission and will get back to you soon.");
+    }).catch(function(err){
+      console.error("Webhook submission failed:", err);
+      showMessage("Could not send", "Please check your connection and try again.");
+    });
+  }
+
+  // Accept the form the person actually used, as long as it carries the fields
+  // we detected. This keeps working when the page renders its form with
+  // JavaScript and the form is not the one that was in the pasted source.
+  function isTargetForm(form){
+    if (!form || form.tagName.toLowerCase() !== "form") return false;
+    var byId = ${idLookup};
+    if (byId && form === byId) return true;
+    for (var k = 0; k < FIELD_KEYS.length; k++){
+      try {
+        if (form.querySelector('[name="' + FIELD_KEYS[k] + '"],[id="' + FIELD_KEYS[k] + '"]')) return true;
+      } catch (err) {}
+    }
+    return form === findForm();
+  }
+
+  function formOf(el){
+    while (el && el.tagName){
+      if (el.tagName.toLowerCase() === "form") return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  // 1. Normal submits. Capture phase, so values are read before any of the
+  //    page's own handlers can clear or reset the form.
+  document.addEventListener("submit", function(e){
+    var form = e.target;
+    if (!isTargetForm(form)) return;
+    e.preventDefault();
+    send(form);
+  }, true);
+
+  // 2. Pages built by AI tools often use a plain button or a styled div as the
+  //    send button, which never fires a submit event at all.
+  function isActionElement(el, form){
+    while (el && el !== form){
+      var tag = (el.tagName || "").toLowerCase();
+      var type = ((el.getAttribute && el.getAttribute("type")) || "").toLowerCase();
+      if (tag === "button" && type !== "reset") return true;
+      if (tag === "input" && (type === "submit" || type === "button" || type === "image")) return true;
+      if (tag === "a") return true;
+      if (el.getAttribute && el.getAttribute("role") === "button") return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  document.addEventListener("click", function(e){
+    var form = formOf(e.target);
+    if (!isTargetForm(form)) return;
+    if (!isActionElement(e.target, form)) return;
+    var tag = (e.target.tagName || "").toLowerCase();
+    var type = ((e.target.getAttribute && e.target.getAttribute("type")) || "").toLowerCase();
+    // A real submit button fires the submit event above; let that path handle it.
+    if ((tag === "button" && type !== "button" && type !== "reset") ||
+        (tag === "input" && type === "submit")) return;
+    e.preventDefault();
+    send(form);
+  }, true);
+})();
+<\/script>`;
+}
+
+function buildLandingFinalCode(){
+  // The page's own code is left exactly as it was; only the script is appended.
+  const originalCode = document.getElementById('landingCodeInput').value;
+  const injection = buildLandingInjection();
+  if(/<\/body>/i.test(originalCode)){
+    return originalCode.replace(/<\/body>/i, injection + '\n</body>');
+  }
+  return originalCode + '\n' + injection;
+}
+
+function showLandingStep(n){
+  ['lstep1','lstep2','lstep3'].forEach((id,i)=>{
+    document.getElementById(id).classList.toggle('visible', i === n-1);
+  });
+  [1,2,3].forEach(i=>{
+    const pill = document.getElementById('lpill-'+i);
+    pill.classList.toggle('active', i === n);
+    pill.classList.toggle('done', i < n);
+    pill.querySelector('.num').textContent = i < n ? '✓' : i;
+  });
+}
+document.getElementById('lToStep2Btn').addEventListener('click', ()=>{
+  document.getElementById('lScriptCode').textContent = buildLandingAppsScript();
+  showLandingStep(2);
+});
+document.getElementById('lBackTo1Btn').addEventListener('click', ()=> showLandingStep(1));
+document.getElementById('lToStep3Btn').addEventListener('click', ()=>{
+  document.getElementById('lFinalCode').textContent = buildLandingFinalCode();
+  showLandingStep(3);
+});
+document.getElementById('lBackTo2Btn').addEventListener('click', ()=> showLandingStep(2));
+
+document.getElementById('lApplyWebhookBtn').addEventListener('click', ()=>{
+  const val = document.getElementById('lWebhookInput').value.trim();
+  if(!val) return;
+  landingWebhookUrl = val;
+  const status = document.getElementById('lWebhookStatus');
+  status.removeAttribute('data-i18n');
+  status.innerHTML = I18N.webhook_status_saved[currentLang];
+  status.classList.add('ok');
+});
+</script>
+</body>
+</html>
