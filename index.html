@@ -435,6 +435,162 @@
   }
   .detected-list .dl-key{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--accent-deep);}
 
+
+  /* ================= mobile ================= */
+  /* Grid and flex children default to min-width:auto, which lets a wide child
+     (the live preview at its chosen pixel width) stretch the whole page. */
+  .grid2 > *{min-width:0;}
+  .preview-canvas{max-width:100%;}
+
+  @media(max-width:760px){
+    .wrap{padding:22px 14px 56px;}
+
+    /* header */
+    header{gap:12px;align-items:center;}
+    .brand{gap:11px;}
+    .brand-mark{width:38px;height:38px;border-radius:10px;}
+    h1{font-size:24px;}
+    .eyebrow{font-size:12.5px;}
+    .lang-toggle{height:42px;}
+    .lang-toggle button{padding:0 16px;font-size:14px;min-height:40px;}
+
+    .back-link{
+      display:inline-flex;align-items:center;min-height:44px;
+      margin:0 0 8px;font-size:15px;
+    }
+
+    /* hero */
+    .hero{margin:18px 0 24px;}
+    .hero-headline{font-size:clamp(23px,6.6vw,42px);}
+    .sub{font-size:14.5px;}
+    .section-heading{gap:10px;margin-bottom:18px;}
+    .section-heading .rule{width:22px;}
+    .mode-select-title{font-size:16px;}
+
+    /* mode cards */
+    .mode-grid{gap:16px;}
+    .mode-card{padding:20px 18px 18px;border-radius:14px;}
+    .mc-head{gap:14px;}
+    .mode-card .mc-icon{width:46px;height:46px;}
+    .mode-card .mc-icon svg{width:22px;height:22px;}
+    .mode-card h3{font-size:18px;margin:2px 0 8px;}
+    .mode-card p{font-size:13.5px;}
+    .mc-divider{margin:18px 0 16px;}
+    .mode-card .mc-cta{width:100%;justify-content:center;padding:13px 20px;}
+
+    /* feature strip stacks, dividers become horizontal */
+    .feature-strip{flex-direction:column;border-radius:14px;}
+    .feature-item{min-width:0;width:100%;padding:15px 16px;gap:13px;}
+    .feature-item + .feature-item::before{
+      top:0;left:16px;right:16px;width:auto;height:1px;
+    }
+    .feature-item .fi-icon{width:38px;height:38px;border-radius:11px;}
+    .feature-item span{font-size:13.5px;}
+
+    /* data journey */
+    .flow-section{padding:20px 16px 22px;border-radius:14px;}
+    .flow-section-title{font-size:18px;margin-bottom:18px;}
+    .flow-node .fn-icon{width:54px;height:54px;border-radius:15px;}
+    .flow-node .fn-icon svg{width:24px;height:24px;}
+    .flow-node span{font-size:16px;}
+    .flow-node small{font-size:13px;max-width:none;}
+
+    /* step tracker: two per row instead of one long strip */
+    .steps-tracker{flex-wrap:wrap;border-radius:14px;margin:8px 0 18px;}
+    .step-pill{
+      flex:1 1 50%;min-width:50%;box-sizing:border-box;
+      padding:13px 11px;font-size:13px;gap:9px;line-height:1.3;
+      border-right:1px solid var(--line-soft);
+      border-bottom:1px solid var(--line-soft);
+    }
+    .step-pill:nth-child(2n){border-right:none;}
+    .step-pill:last-child{border-bottom:none;}
+    .steps-tracker .step-pill:nth-last-child(-n+2):nth-child(2n+1){border-bottom:none;}
+    .step-pill .num{width:26px;height:26px;font-size:12.5px;}
+
+    /* panels */
+    .panel{padding:18px 16px;border-radius:14px;margin-bottom:16px;}
+    .panel h2{font-size:15.5px;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding-bottom:12px;}
+    .panel h2:not(:first-child){margin-top:24px;}
+    .panel-head{gap:12px;margin-bottom:16px;}
+    .panel-head .ph-badge{width:40px;height:40px;}
+    .panel-head h2{font-size:16px;}
+
+    /* a field is one row for its name, one row for its settings */
+    .field-row{flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+    .field-row input[type=text]{flex:1 1 100%;}
+    .field-row select{flex:1 1 auto;width:auto;min-width:112px;}
+    .req-toggle{font-size:14px;gap:8px;padding:4px 2px;}
+    .req-toggle input[type=checkbox],
+    .toggle-row input[type=checkbox]{width:18px;height:18px;}
+    .field-row button.rm{
+      min-width:40px;min-height:40px;font-size:22px;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .add-field{padding:14px;font-size:15px;}
+
+    /* 16px keeps iOS from zooming the page in when a field is focused */
+    .field-row input[type=text], .field-row select,
+    input.text-input, textarea.text-input, textarea.code-input,
+    .style-row select, .style-row input.hex-input,
+    .deploy-row input{font-size:16px;}
+    label.small{font-size:13px;}
+    textarea.code-input{min-height:200px;padding:14px;}
+
+    /* style rows */
+    .style-row{gap:10px;margin-bottom:14px;font-size:14px;flex-wrap:wrap;}
+    .style-row select{flex:1 1 100%;width:100%;max-width:none;}
+    .style-row input.hex-input{width:100px;min-height:40px;padding:7px 8px;}
+    .style-row input[type=color]{width:46px;height:40px;}
+    .style-row input[type=range]{width:116px;height:30px;}
+    .style-val{font-size:13px;min-width:46px;}
+    .toggle-row{font-size:14px;min-height:40px;}
+
+    .bg-upload{flex-direction:column;align-items:stretch;gap:8px;}
+    .bg-pick{padding:14px;font-size:15px;}
+    .bg-remove{padding:13px 14px;font-size:14px;}
+
+    /* preview panes: not sticky on a phone, and the form scrolls inside */
+    .preview-shell{position:static;}
+    .preview-canvas{padding:18px 14px;min-height:0;justify-content:flex-start;}
+    /* the form fits the screen rather than being cut off; the chosen pixel
+       width still shows beside the Form width slider */
+    .preview-canvas > .preview-form{flex:0 1 auto;max-width:100%;}
+    .popup-preview-wrap{padding:22px 14px;min-height:0;}
+    .popup-card{max-width:100%;}
+
+    /* buttons stack and go full width */
+    .step-nav{flex-direction:column;align-items:stretch;gap:10px;margin-top:14px;}
+    .step-nav .generate-btn{width:100%;}
+    #detectFieldsBtn{width:100%;}
+    .generate-btn{padding:15px 22px;font-size:15px;}
+
+    /* code blocks */
+    .code-box{padding:46px 14px 16px;border-radius:11px;}
+    .copy-btn{top:9px;right:10px;padding:11px 15px;font-size:12px;min-height:40px;}
+    pre{font-size:11.5px;line-height:1.6;max-height:300px;}
+    .steps-mini{font-size:13px;line-height:1.7;}
+
+    .deploy-box{padding:16px 14px;}
+    .deploy-row{flex-direction:column;gap:9px;}
+    .deploy-row button{width:100%;padding:14px 20px;font-size:15px;}
+    .status{font-size:13px;}
+
+    .detected-list li{flex-direction:column;align-items:flex-start;gap:4px;padding:12px 14px;}
+  }
+
+  @media(max-width:400px){
+    .wrap{padding:18px 12px 48px;}
+    h1{font-size:22px;}
+    .hero-headline{letter-spacing:-.03em;}
+    .step-pill{padding:12px 9px;font-size:12.5px;gap:8px;}
+    .step-pill .num{width:24px;height:24px;font-size:12px;}
+    .panel{padding:16px 13px;}
+    .style-row input[type=range]{width:96px;}
+    .mode-card{padding:18px 15px 16px;}
+    .mode-card h3{font-size:17px;}
+  }
+
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important;}
